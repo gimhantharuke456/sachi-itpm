@@ -51,6 +51,9 @@ export const getPointsBalance = async (
 ): Promise<Points | null> => {
   return prisma.points.findUnique({
     where: { userId },
+    include: {
+      user: true,
+    },
   });
 };
 

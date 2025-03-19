@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getInventoryItemById } from "../services";
 import { InventoryItem } from "../types";
 import { motion } from "framer-motion";
@@ -13,7 +13,7 @@ const SingleItemView: React.FC = () => {
   const [item, setItem] = useState<InventoryItem | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchItem = async () => {
       try {
@@ -39,6 +39,8 @@ const SingleItemView: React.FC = () => {
   const handleBuyNow = () => {
     // Buy now logic here
     console.log("Buy now:", item, "Quantity:", quantity);
+    localStorage.setItem("buyItemQty", quantity.toString());
+    navigate("/place-order/" + item?.id);
   };
 
   if (loading) {

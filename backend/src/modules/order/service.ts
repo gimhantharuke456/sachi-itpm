@@ -9,10 +9,18 @@ export const createOrder = async (orderData: {
   totalBill: number;
   discount?: number;
   couponCode?: string;
+  address: string;
+  contactNumber: string;
+  email: string;
+  name: string;
 }): Promise<Order> => {
-  return prisma.order.create({
+  const order = await prisma.order.create({
     data: {
       userId: orderData.userId,
+      address: orderData.address,
+      email: orderData.email,
+      name: orderData.name,
+      contactNumber: orderData.contactNumber,
       totalBill: orderData.totalBill,
       discount: orderData.discount || 0,
       couponCode: orderData.couponCode,
@@ -25,11 +33,38 @@ export const createOrder = async (orderData: {
     },
     include: { orderedItems: { include: { inventory: true } }, user: true },
   });
+  //check points and create or update
+  const points = await prisma.points.findUnique({
+    where: {
+      userId: orderData.userId,
+    },
+  });
+  if (points) {
+    await prisma.points.update({
+      where: {
+        id: points.id,
+      },
+      data: {
+        balance: points.balance + orderData.totalBill / 10,
+      },
+    });
+  } else {
+    await prisma.points.create({
+      data: {
+        balance: orderData.totalBill / 10,
+        userId: orderData.userId,
+      },
+    });
+  }
+  return order;
 };
 
 // Get all orders
 export const getAllOrders = async (): Promise<Order[]> => {
   return prisma.order.findMany({
+    where: {
+      deleteStatus: false,
+    },
     include: { orderedItems: { include: { inventory: true } }, user: true },
   });
 };
@@ -47,7 +82,7 @@ export const getOrdersByCustomerId = async (
   customerId: string
 ): Promise<Order[]> => {
   return prisma.order.findMany({
-    where: { userId: customerId },
+    where: { userId: customerId, deleteStatus: false },
     include: { orderedItems: { include: { inventory: true } }, user: true },
   });
 };
@@ -67,12 +102,12 @@ export const updateOrder = async (
 // Delete an order (and its related OrderInventoryItem entries)
 export const deleteOrder = async (id: string): Promise<Order | null> => {
   // Delete related order items first (because of Prisma foreign key constraints)
-  await prisma.orderInventoryItem.deleteMany({
-    where: { orderId: id },
-  });
 
   // Delete the order
-  return prisma.order.delete({
+  return prisma.order.update({
     where: { id },
+    data: {
+      deleteStatus: true,
+    },
   });
 };

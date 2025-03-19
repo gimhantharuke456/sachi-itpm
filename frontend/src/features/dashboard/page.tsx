@@ -34,11 +34,7 @@ const DashboardPage: React.FC = () => {
       label: "User Management",
       icon: <Users className="h-5 w-5" />,
     },
-    {
-      id: "customer-management",
-      label: "Customer Management",
-      icon: <Users className="h-5 w-5" />,
-    },
+
     {
       id: "order-management",
       label: "Order Management",

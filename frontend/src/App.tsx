@@ -8,6 +8,7 @@ import SingleItemView from "./features/items/components/SingleItemView";
 import ProfileView from "./features/users/components/ProfileComponent";
 import CartView from "./features/cart/page";
 import PlaceOrderPage from "./features/orders/place-order-page";
+import MyOrdersPage from "./features/orders/my-orders-page";
 function App() {
   return (
     <BrowserRouter>
@@ -20,6 +21,7 @@ function App() {
         <Route path="/cart" element={<CartView />} />
         <Route path="/place-order/:id" element={<PlaceOrderPage />} />
         <Route path="/place-order" element={<PlaceOrderPage />} />
+        <Route path="/my-orders" element={<MyOrdersPage />} />
         <Route path="/" element={<HomePage />} />
       </Routes>
     </BrowserRouter>

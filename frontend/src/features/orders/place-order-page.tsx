@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Form,
-  Input,
-  Button,
-  Card,
-  Typography,
-  Divider,
-  List,
-  message,
-} from "antd";
+import { Form, Input, Button, Card, Typography, Divider, List } from "antd";
 import {
   CreditCardOutlined,
   ShopOutlined,
@@ -23,6 +14,7 @@ import Footer from "@/components/Footer";
 import { OrderFormValues } from "./schemas";
 import { InventoryItem } from "@/features/items/types";
 import PointBalance from "../points/components/PointBalance";
+import { toast } from "sonner";
 
 const { Title, Text } = Typography;
 
@@ -58,7 +50,7 @@ const PlaceOrderPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        message.error("Failed to load order details");
+        toast.error("Failed to load order details");
       }
     };
 
@@ -78,22 +70,20 @@ const PlaceOrderPage: React.FC = () => {
   }, [id, form]);
 
   const applyCoupon = (couponCode: string) => {
-    // This is a dummy function - in a real app, you would validate the coupon
-    // and apply the discount based on the coupon logic
     if (couponCode === "SAVE10") {
       const discountAmount = totalBill * 0.1;
       setDiscount(discountAmount);
-      message.success("Coupon applied successfully!");
+      toast.success("Coupon applied successfully!");
     } else {
-      message.error("Invalid coupon code");
+      toast.error("Invalid coupon code");
     }
   };
 
-  const handleApplyPoints = (pointsToRedeem) => {
+  const handleApplyPoints = (pointsToRedeem: number) => {
     // Apply the points value as discount
     const pointsDiscount = pointsToRedeem; // 1 point = 1 LKR
     setDiscount((prevDiscount) => prevDiscount + pointsDiscount);
-    message.success(`Applied ${pointsToRedeem} points to your order!`);
+    toast.success(`Applied ${pointsToRedeem} points to your order!`);
   };
 
   const handleSubmit = async (values: any) => {
@@ -102,7 +92,7 @@ const PlaceOrderPage: React.FC = () => {
       const userId = localStorage.getItem("userId");
 
       if (!userId) {
-        message.error("Please log in to place an order");
+        toast.error("Please log in to place an order");
         navigate("/login");
         return;
       }
@@ -112,7 +102,11 @@ const PlaceOrderPage: React.FC = () => {
         totalBill: totalBill - discount,
         discount,
         couponCode: values.couponCode || undefined,
-        orderedItems: items.map((item) => ({
+        name: values.name,
+        email: values.email,
+        contactNumber: values.contactNumber,
+        address: values.address,
+        items: items.map((item) => ({
           inventoryId: item.item.id,
           quantity: item.quantity,
         })),
@@ -121,15 +115,14 @@ const PlaceOrderPage: React.FC = () => {
       await createOrder(orderData);
 
       if (!id) {
-        // Clear cart only if ordering from cart
         clearCart();
       }
 
-      message.success("Order placed successfully!");
+      toast.success("Order placed successfully!");
       navigate("/");
     } catch (error) {
       console.error("Error placing order:", error);
-      message.error("Failed to place order");
+      toast.error("Failed to place order");
     } finally {
       setLoading(false);
     }

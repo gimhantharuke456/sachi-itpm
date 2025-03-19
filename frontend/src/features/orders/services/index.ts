@@ -23,6 +23,18 @@ export const getAllOrders = async () => {
   }
 };
 
+export const getAllCustomerOrders = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/customer/${localStorage.getItem("userId")}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    throw error;
+  }
+};
+
 export const getOrderById = async (orderId: string) => {
   try {
     const response = await axios.get(`${API_URL}/${orderId}`);

@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { getUserById, updateUser } from "../services";
 import { User } from "../types";
+import { getPointsBalance } from "@/features/points/services";
 
 const { Title, Text } = Typography;
 
@@ -18,6 +19,7 @@ const ProfileView: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [pointBalance, setPointBalance] = useState<number>(0);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -25,6 +27,8 @@ const ProfileView: React.FC = () => {
       if (userId) {
         try {
           const userData = await getUserById(userId);
+          const balance = await getPointsBalance(userId);
+          setPointBalance(balance.balance ?? 0);
           setUser(userData);
           form.setFieldsValue(userData); // Pre-fill form with user data
         } catch (error) {
@@ -100,7 +104,7 @@ const ProfileView: React.FC = () => {
             {user.name}
           </Title>
           <div className="mt-4 inline-block bg-yellow-400 text-blue-800 px-4 py-2 rounded-full font-semibold">
-            <TrophyOutlined className="mr-2" /> {"122"} Points
+            <TrophyOutlined className="mr-2" /> {pointBalance} Points
           </div>
         </div>
 

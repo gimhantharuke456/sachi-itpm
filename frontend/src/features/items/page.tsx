@@ -8,7 +8,7 @@ import {
   deleteInventoryItem as deleteItem,
 } from "./services/index";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 import { InventoryItem } from "./types";
 import { InventoryItemFormValues } from "./schemas";
 import CreateEditItemModal from "./components/CreateEditItemModal";
@@ -67,7 +67,7 @@ const ItemsPage: React.FC = () => {
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
     doc.text("Inventory Items List", 10, 10);
-    doc.autoTable({
+    autoTable(doc, {
       head: [["Name", "Price", "Description", "In Stock", "Image URL"]],
       body: items.map((item) => [
         item.name,

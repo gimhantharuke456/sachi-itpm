@@ -5,7 +5,12 @@ export const OrderSchema = z.object({
   totalBill: z.number().min(0, "Total bill cannot be negative"),
   discount: z.number().default(0),
   couponCode: z.string().optional(),
-  orderedItems: z.array(
+  name: z.string(),
+  address: z.string(),
+  contactNumber: z.string(),
+  orderStatus: z.string(),
+  email: z.string(),
+  items: z.array(
     z.object({
       inventoryId: z.string().min(1, "Inventory ID is required"),
       quantity: z.number().min(1, "Quantity must be at least 1"),
