@@ -31,6 +31,7 @@ export const deductPoints = async (
   userId: string,
   points: number
 ): Promise<Points> => {
+  console.log(`points ${points}`);
   const userPoints = await prisma.points.findUnique({
     where: { userId },
   });
@@ -41,7 +42,7 @@ export const deductPoints = async (
 
   return prisma.points.update({
     where: { userId },
-    data: { balance: userPoints.balance - points },
+    data: { balance: points },
   });
 };
 

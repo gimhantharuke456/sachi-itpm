@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Form, Input, Button, Card, Typography, Divider, List } from "antd";
 import {
   CreditCardOutlined,
+  GiftOutlined,
   ShopOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -13,8 +14,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { OrderFormValues } from "./schemas";
 import { InventoryItem } from "@/features/items/types";
-import PointBalance from "../points/components/PointBalance";
 import { toast } from "sonner";
+import { deductPoints, getPointsBalance } from "../points/services";
+import { PointsFormValues } from "../points/schemas";
 
 const { Title, Text } = Typography;
 
@@ -23,11 +25,13 @@ const PlaceOrderPage: React.FC = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [pointsBalance, setPointsBalance] = useState<number>(0);
   const [items, setItems] = useState<
     Array<{ item: InventoryItem; quantity: number }>
   >([]);
   const [totalBill, setTotalBill] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [pointsToRadeem, setPointsToRedeem] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +39,7 @@ const PlaceOrderPage: React.FC = () => {
         if (id) {
           // Fetch single item if ID is provided
           const item = await getInventoryItemById(id);
+
           setItems([{ item, quantity: 1 }]);
           setTotalBill(item.price);
         } else {
@@ -47,6 +52,12 @@ const PlaceOrderPage: React.FC = () => {
             0
           );
           setTotalBill(total);
+        }
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+          const balance = await getPointsBalance(userId!);
+
+          setPointsBalance(balance.balance ?? 0);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -69,20 +80,31 @@ const PlaceOrderPage: React.FC = () => {
     }
   }, [id, form]);
 
-  const applyCoupon = (couponCode: string) => {
-    if (couponCode === "SAVE10") {
-      const discountAmount = totalBill * 0.1;
-      setDiscount(discountAmount);
-      toast.success("Coupon applied successfully!");
-    } else {
-      toast.error("Invalid coupon code");
+  const handleApplyPoints = async (pointsToRedeem: number) => {
+    if (isNaN(pointsToRadeem) || pointsToRadeem <= 0) {
+      toast.error("Please enter a valid number of points.");
+      return;
     }
-  };
 
-  const handleApplyPoints = (pointsToRedeem: number) => {
-    // Apply the points value as discount
-    const pointsDiscount = pointsToRedeem; // 1 point = 1 LKR
-    setDiscount((prevDiscount) => prevDiscount + pointsDiscount);
+    if (pointsToRadeem > pointsBalance) {
+      toast.error("You cannot redeem more points than you have.");
+      return;
+    }
+    if (id) {
+      const item = await getInventoryItemById(id);
+      setTotalBill(item.price);
+    } else {
+      const cartItems = getCartItems();
+      setItems(cartItems);
+      // Calculate total bill
+      const total = cartItems.reduce(
+        (sum, cartItem) => sum + cartItem.item.price * cartItem.quantity,
+        0
+      );
+      setTotalBill(total);
+    }
+    setDiscount(((totalBill - pointsToRadeem) / totalBill) * 100);
+    setTotalBill((prev) => prev - pointsToRadeem / 100);
     toast.success(`Applied ${pointsToRedeem} points to your order!`);
   };
 
@@ -105,6 +127,7 @@ const PlaceOrderPage: React.FC = () => {
         name: values.name,
         email: values.email,
         contactNumber: values.contactNumber,
+        orderStatus: "Pending",
         address: values.address,
         items: items.map((item) => ({
           inventoryId: item.item.id,
@@ -113,6 +136,11 @@ const PlaceOrderPage: React.FC = () => {
       };
 
       await createOrder(orderData);
+      const data: PointsFormValues = {
+        userId: localStorage.getItem("userId")!,
+        points: pointsBalance - pointsToRadeem,
+      };
+      await deductPoints(data);
 
       if (!id) {
         clearCart();
@@ -172,21 +200,43 @@ const PlaceOrderPage: React.FC = () => {
               <Text strong>Total:</Text>
               <Text strong>LKR{(totalBill - discount).toFixed(2)}</Text>
             </div>
-
-            <div className="mt-4">
-              <Input.Search
-                placeholder="Enter coupon code"
-                enterButton="Apply"
-                onSearch={applyCoupon}
-              />
-              <Text type="secondary" className="block mt-1">
-                Try "SAVE10" for 10% off
-              </Text>
-            </div>
-            <div className="mt-5">
-              {" "}
-              <PointBalance onApplyPoints={handleApplyPoints} />
-            </div>
+            <Card style={{ marginTop: 16 }}>
+              <div className="flex items-center mb-4">
+                <GiftOutlined
+                  style={{
+                    fontSize: "24px",
+                    marginRight: "8px",
+                    color: "#1890ff",
+                  }}
+                />
+                <Title level={4} style={{ margin: 0 }}>
+                  Your Reward Points
+                </Title>
+              </div>
+              <div className="mb-4">
+                <Text>
+                  You have <strong>{pointsBalance} points</strong> available.
+                  You can reduce your bill by up to{" "}
+                  <strong>LKR {(pointsBalance / 100).toFixed(2)}</strong>.
+                </Text>
+              </div>
+              <div className="flex gap-4">
+                {" "}
+                <Input
+                  onChange={(val) => {
+                    setPointsToRedeem(parseInt(val.currentTarget.value));
+                  }}
+                  placeholder="Number of points"
+                />
+                <Button
+                  onClick={() => {
+                    handleApplyPoints(pointsToRadeem);
+                  }}
+                >
+                  Apply
+                </Button>
+              </div>
+            </Card>
           </Card>
 
           {/* Payment Details */}
