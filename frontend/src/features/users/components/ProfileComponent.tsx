@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Typography, Button, Form, Input, Modal } from "antd";
+import { Card, Typography, Button, Form, Input, Popconfirm } from "antd";
 import {
   UserOutlined,
   MailOutlined,
@@ -48,14 +48,9 @@ const ProfileView: React.FC = () => {
   }, [userId, form]);
 
   const handleLogout = () => {
-    Modal.confirm({
-      title: "Are you sure you want to logout?",
-      onOk: () => {
-        localStorage.removeItem("userId");
-        localStorage.removeItem("user");
-        navigate("/login");
-      },
-    });
+    localStorage.removeItem("userId");
+    localStorage.removeItem("user");
+    navigate("/login");
   };
 
   const handleSave = async (values: User) => {
@@ -197,20 +192,27 @@ const ProfileView: React.FC = () => {
               Edit Profile
             </Button>
             <div style={{ height: 16 }}></div>
-            <Button
-              type="default"
-              danger
-              block
-              className="mt-2"
-              onClick={handleLogout}
-              style={{
-                borderRadius: "8px",
-                height: "40px",
-                borderColor: "#ff4d4f",
-              }}
+            <Popconfirm
+              title="Do you want to logout"
+              onConfirm={handleLogout}
+              onCancel={() => {}}
+              okText="Yes"
+              cancelText="No"
             >
-              Logout
-            </Button>
+              <Button
+                type="default"
+                danger
+                block
+                className="mt-2"
+                style={{
+                  borderRadius: "8px",
+                  height: "40px",
+                  borderColor: "#ff4d4f",
+                }}
+              >
+                Logout
+              </Button>
+            </Popconfirm>
           </div>
         )}
       </Card>
