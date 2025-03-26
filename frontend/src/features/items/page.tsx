@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Input, Table } from "antd";
+import { Button, Card, Input, Table, message } from "antd";
 import { PlusOutlined, DownloadOutlined } from "@ant-design/icons";
 import {
   getAllInventoryItems as getAllItems,
@@ -22,7 +22,7 @@ const ItemsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-
+  const [messageApi, contextHolder] = message.useMessage();
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -53,14 +53,17 @@ const ItemsPage: React.FC = () => {
     try {
       if (selectedItem) {
         await updateItem(selectedItem.id, values);
+        messageApi.success("Item updated successfully");
       } else {
         await createItem(values);
+        messageApi.success("Item created successfully");
       }
       await fetchData();
       setIsModalOpen(false);
       setSelectedItem(null);
     } catch (error) {
       console.error("Error saving item:", error);
+      messageApi.error("Something went wront, please try again!");
     }
   };
 
@@ -68,13 +71,12 @@ const ItemsPage: React.FC = () => {
     const doc = new jsPDF();
     doc.text("Inventory Items List", 10, 10);
     autoTable(doc, {
-      head: [["Name", "Price", "Description", "In Stock", "Image URL"]],
+      head: [["Name", "Price", "Description", "In Stock"]],
       body: items.map((item) => [
         item.name,
         item.price,
         item.description,
         item.inStock,
-        item.imageUrl,
       ]),
     });
     doc.save("inventory_items.pdf");
@@ -135,6 +137,7 @@ const ItemsPage: React.FC = () => {
 
   return (
     <div className="p-4">
+      {contextHolder}
       <Card
         title="Inventory Items"
         extra={

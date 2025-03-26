@@ -1,14 +1,7 @@
 import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Users,
-  Package,
-  ShoppingCart,
-  Ticket,
-  CreditCard,
-  Truck,
-} from "lucide-react";
+import { Users, Package, ShoppingCart, CreditCard, Truck } from "lucide-react";
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -57,18 +50,7 @@ const DashboardLayout: React.FC = () => {
               Order Management
             </Link>
           </Button>
-          <Button
-            variant={
-              isActive("/dashboard/coupon-management") ? "default" : "ghost"
-            }
-            className="w-full justify-start"
-            asChild
-          >
-            <Link to="/dashboard/coupon-management">
-              <Ticket className="mr-2 h-4 w-4" />
-              Coupon Management
-            </Link>
-          </Button>
+
           <Button
             variant={
               isActive("/dashboard/point-management") ? "default" : "ghost"

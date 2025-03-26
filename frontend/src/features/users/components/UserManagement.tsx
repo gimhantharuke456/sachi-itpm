@@ -8,6 +8,7 @@ import { User } from "../types";
 import CreateEditUserModal from "./CreateEditUserModal";
 import { createUser, deleteUser, getAllUsers, updateUser } from "../services";
 import { UserFormValues } from "../schemas";
+import { toast } from "sonner";
 
 const UserManagement = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -39,8 +40,14 @@ const UserManagement = () => {
   };
 
   const onDeleteUserClicked = async (user: User) => {
-    await deleteUser(user.id);
-    await fetchData();
+    try {
+      await deleteUser(user.id);
+      await fetchData();
+      toast.success("User deleted successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error(`Error while deleting user`);
+    }
   };
 
   return (
@@ -80,9 +87,21 @@ const UserManagement = () => {
         user={selectedUser ?? undefined}
         onSave={async (values: UserFormValues) => {
           if (selectedUser) {
-            await updateUser(selectedUser?.id, values);
+            try {
+              await updateUser(selectedUser?.id, values);
+              toast.success("User updated successfully");
+            } catch (error) {
+              console.error(error);
+              toast.error("Error while updateing the user");
+            }
           } else {
-            await createUser(values);
+            try {
+              await createUser(values);
+              toast.success("User created successfully");
+            } catch (error) {
+              console.error(error);
+              toast.error("Error while creating the user");
+            }
           }
           await fetchData();
         }}

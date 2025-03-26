@@ -21,17 +21,17 @@ const CreateEditItemModal: React.FC<CreateEditItemModalProps> = ({
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string>(item?.imageUrl || "");
   const [uploading, setUploading] = useState<boolean>(false);
-
+  const [messageApi, contextHolder] = message.useMessage();
   const handleUpload = async (file: File) => {
     try {
       setUploading(true);
       const url = await uploadFile(file, `items/${file.name}`);
       setImageUrl(url);
       form.setFieldsValue({ imageUrl: url });
-      message.success("Image uploaded successfully");
+      messageApi.success("Image uploaded successfully");
     } catch (error) {
       console.error(error);
-      message.error("Failed to upload image");
+      messageApi.error("Failed to upload image");
     } finally {
       setUploading(false);
     }
@@ -68,6 +68,7 @@ const CreateEditItemModal: React.FC<CreateEditItemModalProps> = ({
         </Button>,
       ]}
     >
+      {contextHolder}
       <Form form={form} layout="vertical" initialValues={item || {}}>
         <Form.Item
           label="Name"

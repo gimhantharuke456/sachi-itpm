@@ -6,7 +6,7 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 import { User } from "../types";
 
 interface UserTableProps {
@@ -36,7 +36,7 @@ const UserTable = ({
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
     doc.text("User List", 10, 10);
-    doc.autoTable({
+    autoTable(doc, {
       head: [["Name", "Contact Number", "Role", "Email", "Username"]],
       body: filteredUsers.map((user) => [
         user.name,

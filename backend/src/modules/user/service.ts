@@ -45,6 +45,26 @@ export const updateUser = async (
 
 // Delete a user
 export const deleteUser = async (id: string): Promise<User | null> => {
+  await prisma.orderInventoryItem.deleteMany({
+    where: {
+      order: {
+        userId: id,
+      },
+    },
+  }),
+    await Promise.all([
+      prisma.points.deleteMany({
+        where: {
+          userId: id,
+        },
+      }),
+
+      prisma.order.deleteMany({
+        where: {
+          userId: id,
+        },
+      }),
+    ]);
   return prisma.user.delete({
     where: { id },
   });

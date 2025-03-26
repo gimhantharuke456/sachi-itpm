@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Input,
-  Button,
-  Space,
-  Modal,
-  Select,
-  Spin,
-  message,
-} from "antd";
+import { Table, Input, Button, Space, Modal, Select, Spin } from "antd";
 import {
   SearchOutlined,
   FilePdfOutlined,
@@ -19,6 +10,7 @@ import type { ColumnsType } from "antd/es/table";
 import jsPDF from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import { getAllOrders, updateOrder, deleteOrder } from "./services";
+import { toast } from "sonner";
 
 interface OrderedItem {
   id: string;
@@ -117,22 +109,22 @@ const OrdersPage: React.FC = () => {
   const handleStatusChange = async (orderId: string, status: string) => {
     try {
       await updateOrder(orderId, { orderStatus: status });
-      message.success("Order status updated successfully");
+      toast.success("Order status updated successfully");
       fetchOrders();
     } catch (error) {
       console.error("Failed to update order status:", error);
-      message.error("Failed to update order status");
+      toast.error("Failed to update order status");
     }
   };
 
   const handleDeleteOrder = async (orderId: string) => {
     try {
       await deleteOrder(orderId);
-      message.success("Order deleted successfully");
+      toast.success("Order deleted successfully");
       fetchOrders();
     } catch (error) {
       console.error("Failed to delete order:", error);
-      message.error("Failed to delete order");
+      toast.error("Failed to delete order");
     }
   };
 

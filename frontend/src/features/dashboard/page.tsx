@@ -40,11 +40,7 @@ const DashboardPage: React.FC = () => {
       label: "Order Management",
       icon: <ShoppingCart className="h-5 w-5" />,
     },
-    {
-      id: "coupon-management",
-      label: "Coupon Management",
-      icon: <Gift className="h-5 w-5" />,
-    },
+
     {
       id: "point-management",
       label: "Point Management",
