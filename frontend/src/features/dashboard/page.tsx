@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Users,
   ShoppingCart,
-  Gift,
   CreditCard,
   Package,
   Truck,

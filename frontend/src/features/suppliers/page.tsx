@@ -15,9 +15,10 @@ import {
   deleteSupplier,
 } from "./services";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 import { SupplierFormValues } from "./schemas";
 import CreateEditSupplierModal from "./components/CreateEditSupplierModal";
+import { toast } from "sonner";
 
 const { Search } = Input;
 
@@ -52,29 +53,38 @@ const SuppliersPage: React.FC = () => {
   };
 
   const onDeleteSupplierClicked = async (supplier: Supplier) => {
-    await deleteSupplier(supplier.id);
-    await fetchSuppliers();
+    try {
+      await deleteSupplier(supplier.id);
+      await fetchSuppliers();
+      toast.success("Supplier deleted successully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong ,please try again");
+    }
   };
 
   const handleSaveSupplier = async (values: SupplierFormValues) => {
     try {
       if (selectedSupplier) {
         await updateSupplier(selectedSupplier.id, values);
+        toast.success("Supplier updated successully");
       } else {
         await createSupplier(values);
+        toast.success("Supplier created successully");
       }
       await fetchSuppliers();
       setIsModalOpen(false);
       setSelectedSupplier(null);
     } catch (error) {
       console.error("Error saving supplier:", error);
+      toast.error("Error while updating the supplier table");
     }
   };
 
   const handleGeneratePDF = () => {
     const doc = new jsPDF();
     doc.text("Suppliers List", 10, 10);
-    doc.autoTable({
+    autoTable(doc, {
       head: [["Name", "Email", "Contact Number", "Address"]],
       body: suppliers.map((supplier) => [
         supplier.name,
