@@ -81,31 +81,53 @@ const PlaceOrderPage: React.FC = () => {
   }, [id, form]);
 
   const handleApplyPoints = async (pointsToRedeem: number) => {
-    if (isNaN(pointsToRadeem) || pointsToRadeem <= 0) {
+    // Validate points input
+    if (isNaN(pointsToRedeem) || pointsToRedeem <= 0) {
       toast.error("Please enter a valid number of points.");
       return;
     }
 
-    if (pointsToRadeem > pointsBalance) {
+    if (pointsToRedeem > pointsBalance) {
       toast.error("You cannot redeem more points than you have.");
       return;
     }
-    if (id) {
-      const item = await getInventoryItemById(id);
-      setTotalBill(item.price);
-    } else {
-      const cartItems = getCartItems();
-      setItems(cartItems);
-      // Calculate total bill
-      const total = cartItems.reduce(
-        (sum, cartItem) => sum + cartItem.item.price * cartItem.quantity,
-        0
+
+    try {
+      // Calculate base total only once
+      let baseTotal: number;
+
+      if (id) {
+        // Single item scenario
+        const item = await getInventoryItemById(id);
+        baseTotal = item.price;
+      } else {
+        // Cart scenario
+        const cartItems = getCartItems();
+        baseTotal = cartItems.reduce(
+          (sum, cartItem) => sum + cartItem.item.price * cartItem.quantity,
+          0
+        );
+      }
+
+      // Ensure discount doesn't exceed total bill
+      const discountAmount = Math.min(pointsToRedeem, baseTotal) / 2;
+
+      const finalTotal = baseTotal - discountAmount;
+
+      // Update state
+      setTotalBill(finalTotal);
+      setDiscount(discountAmount);
+      setPointsToRedeem(pointsToRedeem);
+
+      // Success toast
+      toast.success(
+        `Applied ${pointsToRedeem} points. Reduced bill by ${discountAmount}.`
       );
-      setTotalBill(total);
+    } catch (error) {
+      // Error handling
+      console.error("Error applying points:", error);
+      toast.error("Failed to apply points. Please try again.");
     }
-    setDiscount(((totalBill - pointsToRadeem) / totalBill) * 100);
-    setTotalBill((prev) => prev - pointsToRadeem / 100);
-    toast.success(`Applied ${pointsToRedeem} points to your order!`);
   };
 
   const handleSubmit = async (values: any) => {
@@ -138,9 +160,12 @@ const PlaceOrderPage: React.FC = () => {
       await createOrder(orderData);
       const data: PointsFormValues = {
         userId: localStorage.getItem("userId")!,
-        points: pointsBalance - pointsToRadeem,
+        points: (pointsBalance ?? 0) - (pointsToRadeem ?? 0) || 0,
       };
-      await deductPoints(data);
+      console.log(pointsToRadeem);
+      if (pointsToRadeem !== 0) {
+        await deductPoints(data);
+      }
 
       if (!id) {
         clearCart();
@@ -188,10 +213,7 @@ const PlaceOrderPage: React.FC = () => {
               )}
             />
             <Divider />
-            <div className="flex justify-between mb-2">
-              <Text>Subtotal:</Text>
-              <Text>LKR{totalBill.toFixed(2)}</Text>
-            </div>
+
             <div className="flex justify-between mb-2">
               <Text>Discount:</Text>
               <Text>-LKR{discount.toFixed(2)}</Text>
@@ -217,7 +239,7 @@ const PlaceOrderPage: React.FC = () => {
                 <Text>
                   You have <strong>{pointsBalance} points</strong> available.
                   You can reduce your bill by up to{" "}
-                  <strong>LKR {(pointsBalance / 100).toFixed(2)}</strong>.
+                  <strong>LKR {Math.round(pointsBalance).toFixed(2)}</strong>.
                 </Text>
               </div>
               <div className="flex gap-4">

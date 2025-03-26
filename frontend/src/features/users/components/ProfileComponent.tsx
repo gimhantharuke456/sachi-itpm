@@ -10,6 +10,7 @@ import {
 import { getUserById, updateUser } from "../services";
 import { User } from "../types";
 import { getPointsBalance } from "@/features/points/services";
+import { toast } from "sonner";
 
 const { Title, Text } = Typography;
 
@@ -27,8 +28,12 @@ const ProfileView: React.FC = () => {
       if (userId) {
         try {
           const userData = await getUserById(userId);
-          const balance = await getPointsBalance(userId);
-          setPointBalance(balance.balance ?? 0);
+          try {
+            const balance = await getPointsBalance(userId);
+            setPointBalance(balance.balance ?? 0);
+          } catch (err) {
+            console.error(err);
+          }
           setUser(userData);
           form.setFieldsValue(userData); // Pre-fill form with user data
         } catch (error) {
@@ -61,9 +66,11 @@ const ProfileView: React.FC = () => {
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setIsEditing(false);
+        toast.success("User updated successfully");
       }
     } catch (error) {
       console.error("Failed to update user:", error);
+      toast.error("Error updating the user");
     }
   };
 
